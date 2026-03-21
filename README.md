@@ -1,5 +1,5 @@
 
-## FastAPI 기반 RAG AI 서버 
+## FastAPI 기반 RAG API 서버 
 
 
 ---
