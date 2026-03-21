@@ -1,4 +1,4 @@
-# MOA-server
+
 
 > FastAPI 기반 RAG AI 서버 — PDF 문서를 벡터DB에 적재하고, LLM을 활용한 질의응답 기능을 제공합니다.
 > 계층적 청킹(Hierarchical Chunking) 전략으로 검색 정확도와 문맥 유지력을 높였습니다.
