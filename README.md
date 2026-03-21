@@ -2,6 +2,12 @@
 ## FastAPI 기반 RAG AI 서버 
 
 
+---
+
+## 🏗 시스템 아키텍처
+
+
+
 ```mermaid
 graph TD
     Client([Client])
@@ -38,9 +44,8 @@ graph TD
 ```
 
 
----
 
-## 🏗 시스템 아키텍처
+
 
 ```mermaid
 sequenceDiagram
