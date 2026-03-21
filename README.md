@@ -1,11 +1,44 @@
 
 ## FastAPI 기반 RAG AI 서버 
 
+
+
+graph TD
+    Client([Client])
+    FastAPI["**FastAPI Server**\nHierarchical Chunking · Ingest · RAG"]
+
+    Client --> FastAPI
+
+    subgraph GPU["External GPU services"]
+        TEI["**TEI**\nQwen3-Embedding · :8080"]
+        vLLM_RAG["**vLLM (RAG)**\ngpt-oss-20b · :8000"]
+        vLLM_Coder["**vLLM (Coder)**\nQwen2.5-Coder · :8001"]
+    end
+
+    subgraph Local["Local storage"]
+        Chroma["**ChromaDB**\nVector DB · :8003"]
+        ParentJSON["**Parent JSON**\ndata/parents/{collection}.json"]
+    end
+
+    FastAPI --> TEI
+    FastAPI --> vLLM_RAG
+    FastAPI --> vLLM_Coder
+    FastAPI --> Chroma
+    FastAPI --> ParentJSON
+
+    style Client fill:#f0f0e8,stroke:#b0b0a0
+    style FastAPI fill:#e8e4f8,stroke:#a090d0
+    style TEI fill:#d8f0e8,stroke:#60b090
+    style vLLM_RAG fill:#fde8e4,stroke:#d08070
+    style vLLM_Coder fill:#fdf0d8,stroke:#c0a060
+    style Chroma fill:#daeaf8,stroke:#6090c0
+    style ParentJSON fill:#e4f4d8,stroke:#70a850
+    style GPU fill:#f8f8f4,stroke:#aaaaaa,stroke-dasharray:6 3
+    style Local fill:#f8f8f4,stroke:#aaaaaa,stroke-dasharray:6 3
+
+
+
 ---
-
-
-<img width="695" height="636" alt="image" src="https://github.com/user-attachments/assets/7fde9823-4623-464b-bd53-ae8bd7085547" />
-
 
 ## 🏗 시스템 아키텍처
 
