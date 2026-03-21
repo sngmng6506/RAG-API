@@ -3,6 +3,10 @@
 
 ---
 
+
+<img width="695" height="636" alt="image" src="https://github.com/user-attachments/assets/7fde9823-4623-464b-bd53-ae8bd7085547" />
+
+
 ## 🏗 시스템 아키텍처
 
 ```mermaid
