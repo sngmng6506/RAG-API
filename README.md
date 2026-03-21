@@ -5,19 +5,19 @@
 ```mermaid
 graph TD
     Client([Client])
-    FastAPI["**FastAPI Server**\nHierarchical Chunking · Ingest · RAG"]
+    FastAPI["FastAPI Server\nHierarchical Chunking · Ingest · RAG"]
 
     Client --> FastAPI
 
     subgraph GPU["External GPU services"]
-        TEI["**TEI**\nQwen3-Embedding · :8080"]
-        vLLM_RAG["**vLLM (RAG)**\ngpt-oss-20b · :8000"]
-        vLLM_Coder["**vLLM (Coder)**\nQwen2.5-Coder · :8001"]
+        TEI["TEI\nQwen3-Embedding · :8080"]
+        vLLM_RAG["vLLM (RAG)\ngpt-oss-20b · :8000"]
+        vLLM_Coder["vLLM (Coder)\nQwen2.5-Coder · :8001"]
     end
 
     subgraph Local["Local storage"]
-        Chroma["**ChromaDB**\nVector DB · :8003"]
-        ParentJSON["**Parent JSON**\ndata/parents/{collection}.json"]
+        Chroma["ChromaDB\nVector DB · :8003"]
+        ParentJSON["Parent JSON\ndata/parents/{collection}.json"]
     end
 
     FastAPI --> TEI
