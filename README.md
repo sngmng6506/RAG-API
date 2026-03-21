@@ -72,7 +72,7 @@ sequenceDiagram
 ## 📁 프로젝트 구조
 
 ```text
-MOA-server/
+Server/
 ├── .env                        # 환경변수 (서버 접속 정보 등)
 ├── docker-compose.yml          # ChromaDB 컨테이너 설정
 ├── requirements.txt            # Python 의존성 목록
