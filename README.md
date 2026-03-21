@@ -2,7 +2,7 @@
 ## FastAPI 기반 RAG AI 서버 
 
 
-
+```mermaid
 graph TD
     Client([Client])
     FastAPI["**FastAPI Server**\nHierarchical Chunking · Ingest · RAG"]
@@ -35,7 +35,7 @@ graph TD
     style ParentJSON fill:#e4f4d8,stroke:#70a850
     style GPU fill:#f8f8f4,stroke:#aaaaaa,stroke-dasharray:6 3
     style Local fill:#f8f8f4,stroke:#aaaaaa,stroke-dasharray:6 3
-
+```
 
 
 ---
