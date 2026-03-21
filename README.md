@@ -55,20 +55,16 @@ MOA-server/
 │   │       └── schemas.py        # 요청/응답 Pydantic 모델
 │   │
 │   ├── services/
-│   │   ├── ingest_service.py     # ChromaDB 적재 오케스트레이션
-│   │   ├── rag_service.py        # 검색(retrieve) + 생성(generate)
-│   │   ├── embed_service.py      # TEI 임베딩 호출
+│   │   ├── ingest_service.py     # ChromaDB 임베딩 관련 서비스 
+│   │   ├── rag_service.py        # 검색(retrieve) + 생성(generate) 서비스 
+│   │   ├── embed_service.py      # TEI 임베딩 호출 서비스 
 │   │   └── document_service.py   # PDF 파싱 및 Hierarchical Chunking
 │   │
 │   └── prompts/
 │       ├── loader.py             # Jinja2 템플릿 로더
 │       ├── rag_prompt.j2         # RAG 답변 생성 프롬프트
 │       └── sql_prompt.j2         # SQL 생성 프롬프트 (예비)
-│
-└── tests/
-    ├── conftest.py
-    ├── test_ingest.py
-    └── test_rag.py
+
 ```
 
 ---
