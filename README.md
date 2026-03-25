@@ -1,12 +1,11 @@
 
-## FastAPI 기반 RAG API 서버 
+---
 
+## FastAPI-based RAG API Server
 
 ---
 
-## 🏗 시스템 아키텍처
-
-
+## 🏗 System Architecture
 
 ```mermaid
 graph TD
@@ -43,10 +42,6 @@ graph TD
     style Local fill:#f8f8f4,stroke:#aaaaaa,stroke-dasharray:6 3
 ```
 
-
-
-
-
 ```mermaid
 sequenceDiagram
     participant User
@@ -57,111 +52,109 @@ sequenceDiagram
     participant vLLM as vLLM<br>(LLM Generation)
 
     rect rgb(240, 248, 255)
-    Note right of User: 1. Ingest Pipeline (문서 적재)
-    User->>FastAPI: PDF 업로드 (POST /upload)
-    FastAPI->>FastAPI: 문서 파싱 및 Hierarchical Chunking
-    FastAPI->>Storage: Parent 청크 저장 (페이지 단위)
-    FastAPI->>TEI: Child 청크 임베딩 요청
-    TEI-->>FastAPI: 텍스트 벡터 반환
-    FastAPI->>Chroma: 벡터 및 메타데이터 저장
-    FastAPI-->>User: 적재 완료 응답
+    Note right of User: 1. Ingest Pipeline
+    User->>FastAPI: Upload PDF (POST /upload)
+    FastAPI->>FastAPI: Parse document & Hierarchical Chunking
+    FastAPI->>Storage: Save parent chunks (page-level)
+    FastAPI->>TEI: Request child chunk embeddings
+    TEI-->>FastAPI: Return text vectors
+    FastAPI->>Chroma: Store vectors and metadata
+    FastAPI-->>User: Ingest complete response
     end
 
     rect rgb(255, 245, 238)
-    Note right of User: 2. RAG Pipeline (질의 응답)
-    User->>FastAPI: 질문 요청 (POST /query)
-    FastAPI->>TEI: 질문 임베딩 요청
-    TEI-->>FastAPI: 질문 벡터 반환
-    FastAPI->>Chroma: 유사도 검색 (Top-K)
-    Chroma-->>FastAPI: 관련 Child 청크 반환
+    Note right of User: 2. RAG Pipeline (Question Answering)
+    User->>FastAPI: Submit question (POST /query)
+    FastAPI->>TEI: Request question embedding
+    TEI-->>FastAPI: Return question vector
+    FastAPI->>Chroma: Similarity search (Top-K)
+    Chroma-->>FastAPI: Return relevant child chunks
     opt use_parent=true
-        FastAPI->>Storage: 매핑된 Parent 청크 조회
-        Storage-->>FastAPI: 확장된 문맥(Context) 반환
+        FastAPI->>Storage: Look up mapped parent chunks
+        Storage-->>FastAPI: Return expanded context
     end
-    FastAPI->>vLLM: 프롬프트 구성 및 답변 생성 요청
-    vLLM-->>FastAPI: 생성된 답변 반환
-    FastAPI-->>User: 최종 답변 응답
+    FastAPI->>vLLM: Build prompt and request answer generation
+    vLLM-->>FastAPI: Return generated answer
+    FastAPI-->>User: Final answer response
     end
 ```
 
 ---
 
-## 💡 주요 기능
+## 💡 Key Features
 
-| 기능 | 설명 |
-|------|------|
-| **Ingest** | PDF 업로드 → Hierarchical Chunking → TEI 임베딩 → ChromaDB 저장 |
-| **RAG Retrieve** | 질문 임베딩 후 ChromaDB 벡터 검색, 관련 청크 반환 |
-| **RAG Query** | 검색된 청크를 context로 vLLM 호출, 최종 답변 생성 |
-| **Collections** | ChromaDB 컬렉션 및 파일 단위 CRUD 관리 |
-
----
-
-## 🔗 외부 서비스 의존성
-
-| 서비스 | 역할 | 모델 | 기본 포트 |
-|--------|------|------|-----------|
-| **ChromaDB** | 벡터 데이터베이스 | — | `8003` |
-| **TEI** | 텍스트 임베딩 생성 | `Qwen3-Embedding` | `8080` |
-| **vLLM (LLM)** | RAG 답변 생성 | `gpt-oss-20b` | `8000` |
-| **vLLM (Coder)** | 코드 생성 | `Qwen2.5-Coder-7B-Instruct` | `8001` |
-
-> ⚠️ **참고**: TEI와 vLLM은 별도의 Linux GPU 서버에서 실행 중인 서비스라고 가정합니다.
-> `.env` 파일에서 해당 서버의 호스트와 포트를 설정해야 합니다.
+| Feature | Description |
+|---------|-------------|
+| **Ingest** | Upload PDF → Hierarchical Chunking → TEI Embedding → Store in ChromaDB |
+| **RAG Retrieve** | Embed question, perform vector search in ChromaDB, return relevant chunks |
+| **RAG Query** | Use retrieved chunks as context, call vLLM, return final answer |
+| **Collections** | CRUD management per ChromaDB collection and per file |
 
 ---
 
-## 📁 프로젝트 구조
+## 🔗 External Service Dependencies
+
+| Service | Role | Model | Default Port |
+|---------|------|-------|--------------|
+| **ChromaDB** | Vector database | — | `8003` |
+| **TEI** | Text embedding generation | `Qwen3-Embedding` | `8080` |
+| **vLLM (LLM)** | RAG answer generation | `gpt-oss-20b` | `8000` |
+| **vLLM (Coder)** | Code generation | `Qwen2.5-Coder-7B-Instruct` | `8001` |
+
+> ⚠️ **Note**: TEI and vLLM are assumed to be running on separate Linux GPU servers. Configure the host and port for each server in the `.env` file.
+
+---
+
+## 📁 Project Structure
 
 ```text
 Server/
-├── .env                        # 환경변수 (서버 접속 정보 등)
-├── docker-compose.yml          # ChromaDB 컨테이너 설정
-├── requirements.txt            # Python 의존성 목록
+├── .env                        # Environment variables (server connection info, etc.)
+├── docker-compose.yml          # ChromaDB container configuration
+├── requirements.txt            # Python dependency list
 │
 ├── data/
-│   ├── chroma_index/           # ChromaDB 로컬 영구 데이터
-│   └── parents/                # 부모 청크 JSON ({collection_name}.json)
+│   ├── chroma_index/           # ChromaDB local persistent data
+│   └── parents/                # Parent chunk JSON ({collection_name}.json)
 │
 └── src/
-    ├── main.py                 # FastAPI 앱 진입점
+    ├── main.py                 # FastAPI app entry point
     │
     ├── core/
-    │   └── config.py           # pydantic-settings 기반 설정 관리
+    │   └── config.py           # pydantic-settings based configuration management
     │
     ├── api/v1/
     │   ├── ingest/
-    │   │   ├── router.py       # 문서 적재 엔드포인트
-    │   │   └── schemas.py      # 요청/응답 Pydantic 모델
+    │   │   ├── router.py       # Document ingest endpoints
+    │   │   └── schemas.py      # Request/response Pydantic models
     │   └── rag/
-    │       ├── router.py       # RAG 검색/생성 엔드포인트
-    │       └── schemas.py      # 요청/응답 Pydantic 모델
+    │       ├── router.py       # RAG search/generation endpoints
+    │       └── schemas.py      # Request/response Pydantic models
     │
     ├── services/
-    │   ├── ingest_service.py   # DB 저장 및 삭제 관리
-    │   ├── rag_service.py      # 검색(retrieve) 및 생성(generate) 로직
-    │   ├── embed_service.py    # TEI API 연동
-    │   └── document_service.py # PDF 파싱 및 Hierarchical Chunking 로직
+    │   ├── ingest_service.py   # DB storage and deletion management
+    │   ├── rag_service.py      # Retrieval and generation logic
+    │   ├── embed_service.py    # TEI API integration
+    │   └── document_service.py # PDF parsing and Hierarchical Chunking logic
     │
     └── prompts/
-        ├── loader.py           # Jinja2 템플릿 로더
-        ├── rag_prompt.j2       # RAG 일반 질의응답 프롬프트
-        └── sql_prompt.j2       # (예비) Text-to-SQL 프롬프트
+        ├── loader.py           # Jinja2 template loader
+        ├── rag_prompt.j2       # RAG general Q&A prompt
+        └── sql_prompt.j2       # (Reserved) Text-to-SQL prompt
 ```
 
 ---
 
-## 🚀 빠른 시작
+## 🚀 Quick Start
 
-### 0. 사전 요구사항
+### 0. Prerequisites
 
-- Python 3.10 이상
-- Docker 및 Docker Compose (ChromaDB 실행용)
+- Python 3.10 or higher
+- Docker and Docker Compose (for running ChromaDB)
 
-### 1. 환경변수 설정
+### 1. Configure Environment Variables
 
-프로젝트 루트에 `.env` 파일을 생성하고 아래 양식에 맞게 입력합니다.
-(URL 입력 시 `http://` 등 프로토콜을 제외하고 IP나 도메인만 입력하세요.)
+Create a `.env` file in the project root and fill in the values below. (When entering URLs, provide only the IP or domain — do not include the protocol such as `http://`.)
 
 ```env
 # ChromaDB Settings
@@ -170,16 +163,16 @@ CHROMA_PORT=8003
 CHROMA_COLLECTION_NAME=default
 
 # TEI (Text Embeddings Inference)
-TEI_HOST=<TEI 서버 IP>
+TEI_HOST=<TEI server IP>
 TEI_PORT=8080
 
 # vLLM - RAG LLM
-VLLM_LLM_HOST=<vLLM 서버 IP>
+VLLM_LLM_HOST=<vLLM server IP>
 VLLM_LLM_PORT=8000
 VLLM_LLM_SERVED_MODEL_NAME=gpt-oss-20b
 
 # vLLM - Coder LLM
-VLLM_CODER_HOST=<vLLM 서버 IP>
+VLLM_CODER_HOST=<vLLM server IP>
 VLLM_CODER_PORT=8001
 VLLM_CODER_SERVED_MODEL_NAME=qwen2.5-coder-7b-instruct
 
@@ -188,79 +181,79 @@ APP_HOST=0.0.0.0
 APP_PORT=9000
 ```
 
-### 2. ChromaDB 실행
+### 2. Start ChromaDB
 
 ```bash
 docker-compose up -d chromadb
 ```
 
-### 3. Python 패키지 설치
+### 3. Install Python Packages
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. 서버 실행
+### 4. Run the Server
 
 ```bash
 python -m src.main
-# 또는
+# or
 uvicorn src.main:app --reload --host 0.0.0.0 --port 9000
 ```
 
-### 5. API 문서 확인
+### 5. Check API Documentation
 
-서버 구동 후 아래 링크에서 대화형 API 문서를 확인할 수 있습니다.
+Once the server is running, visit the links below for interactive API docs:
 
 - Swagger UI: [http://localhost:9000/docs](http://localhost:9000/docs)
 - ReDoc: [http://localhost:9000/redoc](http://localhost:9000/redoc)
 
 ---
 
-## 📖 API 엔드포인트
+## 📖 API Endpoints
 
-### 1. Ingest (문서 적재)
+### 1. Ingest (Document Ingestion)
 
-| Method | Endpoint | 설명 |
-|--------|----------|------|
-| `POST` | `/v1/ingest/upload` | PDF 업로드 → 청킹 → 임베딩 → DB 저장 |
-| `GET` | `/v1/ingest/collections` | 전체 컬렉션 목록 조회 |
-| `GET` | `/v1/ingest/collections/{name}/files` | 컬렉션 내 파일 목록 조회 |
-| `DELETE` | `/v1/ingest/collections/{name}` | 컬렉션 전체 삭제 |
-| `DELETE` | `/v1/ingest/collections/{name}/files/{file}` | 특정 파일의 청크 데이터만 삭제 |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/v1/ingest/upload` | Upload PDF → Chunk → Embed → Store in DB |
+| `GET` | `/v1/ingest/collections` | List all collections |
+| `GET` | `/v1/ingest/collections/{name}/files` | List files in a collection |
+| `DELETE` | `/v1/ingest/collections/{name}` | Delete an entire collection |
+| `DELETE` | `/v1/ingest/collections/{name}/files/{file}` | Delete chunk data for a specific file only |
 
-**업로드 요청 예시 (multipart/form-data)**
+**Upload Request Example (multipart/form-data)**
 
 ```
-file: 파일.pdf
-collection_name: default   # 선택, 기본값: .env의 CHROMA_COLLECTION_NAME
-chunk_size: 500            # 선택, Child 청크 크기, 기본값: 500
-chunk_overlap: 50          # 선택, 청크 간 겹침, 기본값: 50
+file: document.pdf
+collection_name: default   # Optional, default: CHROMA_COLLECTION_NAME from .env
+chunk_size: 500            # Optional, child chunk size, default: 500
+chunk_overlap: 50          # Optional, overlap between chunks, default: 50
 ```
 
-### 2. RAG (검색 및 질의응답)
+### 2. RAG (Retrieval and Question Answering)
 
-| Method | Endpoint | 설명 |
-|--------|----------|------|
-| `POST` | `/v1/rag/retrieve` | 질문 벡터화 후 관련 청크(문맥)만 검색하여 반환 |
-| `POST` | `/v1/rag/query` | 질문 검색 후 LLM을 통한 최종 답변 생성 |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/v1/rag/retrieve` | Vectorize question, search for relevant chunks, return context only |
+| `POST` | `/v1/rag/query` | Search chunks, then generate a final answer via LLM |
 
-**`/v1/rag/retrieve` 요청 Body**
+**`/v1/rag/retrieve` Request Body**
 
 ```json
 {
-  "question": "물류 신청 방법은?",
+  "question": "How do I apply for logistics?",
   "collection_name": "default",
   "top_k": 5,
   "use_parent": false
 }
 ```
 
-**`/v1/rag/query` 요청 Body**
+**`/v1/rag/query` Request Body**
 
 ```json
 {
-  "question": "물류 신청 방법은?",
+  "question": "How do I apply for logistics?",
   "collection_name": "default",
   "top_k": 5,
   "use_parent": true,
@@ -271,27 +264,27 @@ chunk_overlap: 50          # 선택, 청크 간 겹침, 기본값: 50
 
 ---
 
-## 🧠 Hierarchical Chunking 구조
+## 🧠 Hierarchical Chunking Structure
 
-문서의 세밀한 검색과 거시적인 문맥 파악을 동시에 달성하기 위해 문서를 두 단계로 관리합니다.
+Documents are managed in two stages to achieve both fine-grained retrieval and broad contextual understanding simultaneously.
 
 ```
-[Parent 청크: 페이지 단위]  →  로컬 스토리지 보관 (data/parents/{collection}.json)
+[Parent Chunk: page-level]  →  Stored in local storage (data/parents/{collection}.json)
     │
-    ├── [Child 청크 1]      →  TEI 임베딩 → ChromaDB 저장 (벡터 검색 대상)
-    ├── [Child 청크 2]      →  TEI 임베딩 → ChromaDB 저장
-    └── [Child 청크 3]      →  TEI 임베딩 → ChromaDB 저장
+    ├── [Child Chunk 1]     →  TEI Embedding → Stored in ChromaDB (vector search target)
+    ├── [Child Chunk 2]     →  TEI Embedding → Stored in ChromaDB
+    └── [Child Chunk 3]     →  TEI Embedding → Stored in ChromaDB
 ```
 
-- **검색(Retrieval)**: 질문과 가장 유사한 내용이 담긴 Child 청크를 찾습니다.
-- **생성(Generation)**: `use_parent: true` 전달 시, Child 청크가 속한 Parent 청크(해당 페이지 전체 텍스트)를 LLM 프롬프트 컨텍스트로 전달합니다. 지엽적인 검색의 한계를 극복하고 더 넓은 문맥을 제공합니다.
+- **Retrieval**: Finds the child chunks most semantically similar to the question.
+- **Generation**: When `use_parent: true` is set, the parent chunk (full page text) that the child chunk belongs to is passed as LLM prompt context — overcoming the limitations of narrow retrieval and providing broader context.
 
 ---
 
-## 🛠 기술 스택
+## 🛠 Tech Stack
 
-| 항목 | 사용 기술 |
-|------|-----------|
+| Item | Technology |
+|------|------------|
 | Framework | FastAPI |
 | Vector DB | ChromaDB (HttpClient API) |
 | Embedding | TEI (Text Embeddings Inference) |
